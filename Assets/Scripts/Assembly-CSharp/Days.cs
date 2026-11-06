@@ -6,330 +6,121 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Days : MonoBehaviour
+public partial class Days : MonoBehaviour
 {
-	[CompilerGenerated]
-	private sealed class _003CStartDays_003Ed__117 : IEnumerator<object>, IEnumerator, IDisposable
-	{
-		private int _003C_003E1__state;
-
-		private object _003C_003E2__current;
-
-		public Days _003C_003E4__this;
-
-		object IEnumerator<object>.Current
-		{
-			[DebuggerHidden]
-			get
-			{
-				return null;
-			}
-		}
-
-		object IEnumerator.Current
-		{
-			[DebuggerHidden]
-			get
-			{
-				return null;
-			}
-		}
-
-		[DebuggerHidden]
-		public _003CStartDays_003Ed__117(int _003C_003E1__state)
-		{
-		}
-
-		[DebuggerHidden]
-		void IDisposable.Dispose()
-		{
-		}
-
-		private bool MoveNext()
-		{
-			return false;
-		}
-
-		bool IEnumerator.MoveNext()
-		{
-			//ILSpy generated this explicit interface implementation from .override directive in MoveNext
-			return this.MoveNext();
-		}
-
-		[DebuggerHidden]
-		void IEnumerator.Reset()
-		{
-		}
-	}
-
 	public GameObject ShakeCam;
-
 	public GameObject GroundC;
-
 	public GameObject Player;
-
 	public GameObject CamN;
-
 	public Animation CamAnimRise;
-
 	public Transform PositionPlayerBack;
-
 	public bool WakingUp;
-
 	public float CurrentDay;
-
 	public bool ExtraDay;
-
 	public float FadeSpeedText;
-
 	public Image BlackScreen;
-
 	public AudioSource DayTextPopup;
-
 	public GameObject UIElements;
-
 	public Image Text_Day1;
-
 	public Image Text_Day2;
-
 	public Image Text_Day3;
-
 	public Image Text_Day4;
-
 	public Image Text_Day5Final;
-
 	public bool BeganDay;
-
 	public GameObject Day4Blood;
-
 	public GameObject BedBlood;
-
 	public GameObject PauseManager;
-
 	public Renderer[] ShadowsOnObjs;
-
 	public GameObject elevatorVariableEasy;
-
 	public GameObject NormalFeature;
-
 	public GameObject HardPlusFeature;
-
 	public GameObject ImpossibleFeature;
-
 	public GameObject ammoOffExtreme;
-
 	public GameObject ammoOffImpossible;
-
 	public BoxCollider offFlameColliderImpossible;
-
 	public GameObject[] electricSwitches;
-
 	public GameObject padlockLockBalloon;
-
 	public GameObject Texts;
-
 	public BGManager BGManager;
-
 	public ScreenEffects ScreenEffects;
-
 	public PickRay RayPick;
-
 	public AudioSource IGSource;
-
 	public AudioSource OutSource;
-
 	public AudioSource HuntSource;
-
 	public AudioSource enemySee;
-
 	public Material Normal;
-
 	public Material NM;
-
 	public AudioClip HuntDefaultNM;
-
 	public AudioClip bgOutsideNM;
-
 	public AudioClip BGNM;
-
 	public AudioClip enemySeeNM;
-
 	public EnemyController EC;
-
 	public Furniture Furni;
-
 	public RayRemoveTraps RemoveRay;
-
 	public float ValueFade;
-
 	public GameObject[] BCams;
-
 	public Gameovers GOvers;
-
 	public GameObject NMStuff;
-
 	public GameObject NMStuff2;
-
 	public Material crow;
-
 	public Material water;
-
 	public Texture waterNM;
-
 	public Texture crowNM;
-
 	public Texture waterNo;
-
 	public Texture crowNo;
-
 	public Material[] buttons;
-
 	public Color normalColor;
-
 	public Color NMColor;
-
 	public Material guillotineNM;
-
 	public Renderer guillotineMesh;
-
 	public Image[] lockPickUI;
-
 	public Sprite nmLockPickUISprite;
-
 	public Material hotAirBalloonMat;
-
 	public Texture2D normalHotAir;
-
 	public Texture2D NMHotAir;
-
 	public Material underwaterSub;
-
 	public Texture2D normalSub;
-
 	public Texture2D NMSub;
-
 	public ParticleSystem underwaterEffects;
-
 	public Color bloodyWaterColor;
-
 	public Renderer waterSubmarineEntrance;
-
 	public Material newNMMaterialWater;
-
 	public Renderer alligatorWater;
-
 	public Texture2D alligatorNM;
-
 	public Color alligatorRedColor;
-
 	public Light[] LightsAffected;
-
 	public DoorLogic[] lockPickedDoorsImpossible;
-
 	public GameObject[] AmmoDisableImpossible;
-
 	public ClosetUnhid CUnh1;
-
 	public ClosetUnhid CUnh2;
-
 	public GameObject[] DeactivatedOnStart;
-
 	public RayRemoveTraps RRay;
-
 	public Image[] stoneImages;
-
 	public Sprite stoneLava;
-
 	public Sprite stoneIce;
-
 	public Sprite stonePower;
-
 	public Image paper;
-
 	public Sprite paperNM;
-
 	public Material slingShot;
-
 	public Texture2D slingNormal;
-
 	public Texture2D slingNM;
-
 	public Texture2D slingIce;
-
 	public Texture2D slingLava;
-
 	public Texture2D slingMagenta;
-
 	public AI_Granny AIGranny;
-
 	public AI_Grandpa AIGrandpa;
-
 	public GameObject LavaPrison_Granny;
-
 	public GameObject IcePrison_Granny;
-
 	public GameObject PowerPrison_Granny;
-
 	public GameObject LavaPrison_Grandpa;
-
 	public GameObject IcePrison_Grandpa;
-
 	public GameObject PowerPrison_Grandpa;
-
 	public Image ticket;
-
 	public Sprite ticketNM;
-
 	public GameObject groundFog;
-
 	public Renderer[] fogs;
-
 	public Material NMFog;
-
 	[Header("Openables")]
 	public Animated[] AnimatedOnes;
-
 	public DoorLogic[] Doors;
-
-	private void Start()
-	{
-	}
-
-	private void Update()
-	{
-	}
-
-	public void StartNew()
-	{
-	}
-
-	[IteratorStateMachine(typeof(_003CStartDays_003Ed__117))]
-	public IEnumerator StartDays()
-	{
-		return null;
-	}
-
-	public void DoorsClose()
-	{
-	}
-
-	public void NoiseObjectsKilled()
-	{
-	}
-
-	public void KillRagdolls()
-	{
-	}
-
-	public void DisableCaught()
-	{
-	}
-
-	private void CamFOVReset()
-	{
-	}
-
-	public void PlayerBackInTheProperSpot()
-	{
-	}
 }
