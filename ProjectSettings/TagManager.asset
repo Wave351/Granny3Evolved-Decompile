@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - resetfloor
+  - granpa
+  - granny
+  - beartrap
+  - floor
+  - grus
+  - BearTrapActivated
+  - noiseobject
+  - shotgun
+  - water
+  - rat
+  - noiseobject_grandpa
+  - Noice
+  - ammo
+  - bloodshootable
+  - Fire
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Moves
+  - Water
+  - UI
+  - Door
+  - Item
+  - Player
+  - Ground
+  - House
+  - PostProcessing
+  - ACSCulling
+  - Enemy
+  - Non-Ground
+  - RG
+  - EnemyPass
+  - Gun
+  - GrandpaArm
+  - StairColliders
+  - CollisionIgnoreItemPlayer
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0

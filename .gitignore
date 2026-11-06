@@ -1,0 +1,24 @@
+# Unity generated
+/Library/
+/Temp/
+/Logs/
+/obj/
+/UserSettings/
+/Captures/
+*.csproj
+*.sln
+# Large binary exports (unchanged from AssetRipper; originals in apk-extracted)
+/Assets/Texture2D/
+/Assets/AudioClip/
+/Assets/Mesh/
+/Assets/VideoClip/
+/Assets/Cubemap/
+/Assets/Sprite/
+/Assets/Resources/textures/
+*.png
+*.ogg
+*.wav
+*.mp4
+*.exr
+# Font atlas images are small and needed for any text to show (white boxes without them)
+!/Assets/Resources/fonts & materials/*.png
