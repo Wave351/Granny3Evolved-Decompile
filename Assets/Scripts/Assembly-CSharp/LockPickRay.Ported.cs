@@ -25,7 +25,7 @@ public partial class LockPickRay
 				indicatorKeyLockPick.SetActive(false);
 			}
 			Vector3 forward = transform.TransformDirection(Vector3.forward);
-			Debug.DrawRay(transform.position, forward * distanceRay, Color.green);
+			UnityEngine.Debug.DrawRay(transform.position, forward * distanceRay, Color.green);
 			RaycastHit hit;
 			var falling = Player.GetComponent<FallingHolder>();
 			availableToLockPick = false;
