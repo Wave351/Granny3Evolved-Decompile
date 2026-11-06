@@ -1,18 +1,8 @@
 using UnityEngine;
 
-public class FollowHand : MonoBehaviour
+public partial class FollowHand : MonoBehaviour
 {
 	private Vector3 OffSet;
-
 	public GameObject Head;
-
 	public float RotateSpeed;
-
-	private void Start()
-	{
-	}
-
-	private void LateUpdate()
-	{
-	}
 }

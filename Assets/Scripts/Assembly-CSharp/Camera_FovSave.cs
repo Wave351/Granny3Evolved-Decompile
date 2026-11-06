@@ -1,8 +1,5 @@
 using UnityEngine;
 
-public class Camera_FovSave : MonoBehaviour
+public partial class Camera_FovSave : MonoBehaviour
 {
-	private void Start()
-	{
-	}
 }

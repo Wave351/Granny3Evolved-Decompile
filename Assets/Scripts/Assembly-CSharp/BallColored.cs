@@ -1,10 +1,6 @@
 using UnityEngine;
 
-public class BallColored : MonoBehaviour
+public partial class BallColored : MonoBehaviour
 {
 	public Color[] RandomColor;
-
-	private void Start()
-	{
-	}
 }
