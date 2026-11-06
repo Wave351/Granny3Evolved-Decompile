@@ -64,7 +64,7 @@ public partial class GasExplosion
 				string n = hit.gameObject.name;
 				if (n == "GrandpaHitBody")
 				{
-					var controller = GameObject.Find("EnemyController")?.GetComponent<EnemyController>();
+					var controllerObject = GameObject.Find("EnemyController"); var controller = controllerObject ? controllerObject.GetComponent<EnemyController>() : null;
 					if (controller == null) return;
 					if (!controller.GrandpaKilled)
 					{
@@ -87,7 +87,7 @@ public partial class GasExplosion
 				}
 				if (n == "CrowNest" || n == "ColliderBirdNest")
 				{
-					var crow = GameObject.Find("CrowNest")?.GetComponent<CrowChimney>();
+					var nest = GameObject.Find("CrowNest"); var crow = nest ? nest.GetComponent<CrowChimney>() : null;
 					if (crow == null) return;
 					crow.KillAssBird();
 				}
