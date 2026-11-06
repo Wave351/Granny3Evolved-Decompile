@@ -1,43 +1,31 @@
-Shader "Hidden/PostProcessing/DiscardAlpha" {
-	Properties {
-	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType" = "Opaque" }
-		LOD 200
+Shader "Hidden/PostProcessing/DiscardAlpha"
+{
+    HLSLINCLUDE
 
-		Pass
-		{
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+        #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
 
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
+        TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex);
 
-			struct Vertex_Stage_Input
-			{
-				float4 pos : POSITION;
-			};
+        float4 Frag(VaryingsDefault i) : SV_Target
+        {
+            float4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord);
+            return float4(color.rgb, 1.0);
+        }
 
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
+    ENDHLSL
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
-			}
+    SubShader
+    {
+        Cull Off ZWrite Off ZTest Always
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				return float4(1.0, 1.0, 1.0, 1.0); // RGBA
-			}
+        Pass
+        {
+            HLSLPROGRAM
 
-			ENDHLSL
-		}
-	}
+                #pragma vertex VertDefault
+                #pragma fragment Frag
+
+            ENDHLSL
+        }
+    }
 }

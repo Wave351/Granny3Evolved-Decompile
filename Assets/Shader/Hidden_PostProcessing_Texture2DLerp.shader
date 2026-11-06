@@ -1,43 +1,50 @@
-Shader "Hidden/PostProcessing/Texture2DLerp" {
-	Properties {
-	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType" = "Opaque" }
-		LOD 200
+Shader "Hidden/PostProcessing/Texture2DLerp"
+{
+    HLSLINCLUDE
 
-		Pass
-		{
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+        #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
 
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
+        TEXTURE2D_SAMPLER2D(_MainTex, sampler_MainTex); // From
+        TEXTURE2D_SAMPLER2D(_To, sampler_To);
+        float _Interp;
+        float4 _TargetColor;
 
-			struct Vertex_Stage_Input
-			{
-				float4 pos : POSITION;
-			};
+        float4 Frag(VaryingsDefault i) : SV_Target
+        {
+            float4 from = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord);
+            float4 to = SAMPLE_TEXTURE2D(_To, sampler_To, i.texcoord);
+            return lerp(from, to, _Interp);
+        }
 
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
+        float4 FragColor(VaryingsDefault i) : SV_Target
+        {
+            float4 from = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord);
+            float4 to = _TargetColor;
+            return lerp(from, to, _Interp);
+        }
+    ENDHLSL
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
-			}
+    SubShader
+    {
+        Cull Off ZWrite Off ZTest Always
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				return float4(1.0, 1.0, 1.0, 1.0); // RGBA
-			}
+        Pass
+        {
+            HLSLPROGRAM
 
-			ENDHLSL
-		}
-	}
+                #pragma vertex VertDefault
+                #pragma fragment Frag
+
+            ENDHLSL
+        }
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertDefault
+                #pragma fragment FragColor
+
+            ENDHLSL
+        }
+    }
 }

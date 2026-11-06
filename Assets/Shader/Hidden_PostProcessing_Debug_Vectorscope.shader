@@ -1,43 +1,59 @@
-Shader "Hidden/PostProcessing/Debug/Vectorscope" {
-	Properties {
-	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType" = "Opaque" }
-		LOD 200
+Shader "Hidden/PostProcessing/Debug/Vectorscope"
+{
+    HLSLINCLUDE
 
-		Pass
-		{
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+        #pragma exclude_renderers gles gles3 d3d11_9x
+        #pragma target 4.5
+        #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
+        #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Colors.hlsl"
 
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
+        StructuredBuffer<uint> _VectorscopeBuffer;
+        float3 _Params; // x: width, y: height, z: exposure, w: unused
 
-			struct Vertex_Stage_Input
-			{
-				float4 pos : POSITION;
-			};
+        float Tonemap(float x, float exposure)
+        {
+            const float a = 6.2;
+            const float b = 0.5;
+            const float c = 1.7;
+            const float d = 0.06;
+            x *= exposure;
+            x = max(0.0, x - 0.004);
+            x = (x * (a * x + b)) / (x * (a * x + c) + d);
+            return x * x;
+        }
 
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
+        float4 Frag(VaryingsDefault i) : SV_Target
+        {
+            i.texcoord.x = 1.0 - i.texcoord.x;
+            float2 uv = i.texcoord - (0.5).xx;
+            float3 c = YCbCrToRgb(float3(0.5, uv.x, uv.y));
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
-			}
+            float dist = sqrt(dot(uv, uv));
+            float delta = fwidth(dist) * 0.5;
+            float alphaOut = 1.0 - smoothstep(0.5 - delta, 0.5 + delta, dist);
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				return float4(1.0, 1.0, 1.0, 1.0); // RGBA
-			}
+            uint2 uvI = i.texcoord.xy * _Params.xy;
+            uint v = _VectorscopeBuffer[uvI.x + uvI.y * _Params.x];
+            float vt = saturate(Tonemap(v, _Params.z));
 
-			ENDHLSL
-		}
-	}
+            float4 color = float4(lerp(c, (0.0).xxx, vt), 1.0);
+            return color;
+        }
+
+    ENDHLSL
+
+    SubShader
+    {
+        Cull Off ZWrite Off ZTest Always
+
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertDefault
+                #pragma fragment Frag
+
+            ENDHLSL
+        }
+    }
 }

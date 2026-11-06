@@ -1,43 +1,103 @@
-Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing" {
-	Properties {
-	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType" = "Opaque" }
-		LOD 200
+Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
+{
+    HLSLINCLUDE
 
-		Pass
-		{
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+        #pragma exclude_renderers d3d11_9x
 
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
+    ENDHLSL
 
-			struct Vertex_Stage_Input
-			{
-				float4 pos : POSITION;
-			};
+    SubShader
+    {
+        Cull Off ZWrite Off ZTest Always
 
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
+        // 0 - Edge detection (Low)
+        Pass
+        {
+            HLSLPROGRAM
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
-			}
+                #pragma vertex VertEdge
+                #pragma fragment FragEdge
+                #define SMAA_PRESET_LOW
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl"
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				return float4(1.0, 1.0, 1.0, 1.0); // RGBA
-			}
+            ENDHLSL
+        }
 
-			ENDHLSL
-		}
-	}
+        // 1 - Edge detection (Medium)
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertEdge
+                #pragma fragment FragEdge
+                #define SMAA_PRESET_MEDIUM
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl"
+
+            ENDHLSL
+        }
+
+        // 2 - Edge detection (High)
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertEdge
+                #pragma fragment FragEdge
+                #define SMAA_PRESET_HIGH
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl"
+
+            ENDHLSL
+        }
+
+        // 3 - Blend Weights Calculation (Low)
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertBlend
+                #pragma fragment FragBlend
+                #define SMAA_PRESET_LOW
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl"
+
+            ENDHLSL
+        }
+
+        // 4 - Blend Weights Calculation (Medium)
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertBlend
+                #pragma fragment FragBlend
+                #define SMAA_PRESET_MEDIUM
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl"
+
+            ENDHLSL
+        }
+
+        // 5 - Blend Weights Calculation (High)
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertBlend
+                #pragma fragment FragBlend
+                #define SMAA_PRESET_HIGH
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl"
+
+            ENDHLSL
+        }
+
+        // 6 - Neighborhood Blending
+        Pass
+        {
+            HLSLPROGRAM
+
+                #pragma vertex VertNeighbor
+                #pragma fragment FragNeighbor
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/SubpixelMorphologicalAntialiasingBridge.hlsl"
+
+            ENDHLSL
+        }
+    }
 }

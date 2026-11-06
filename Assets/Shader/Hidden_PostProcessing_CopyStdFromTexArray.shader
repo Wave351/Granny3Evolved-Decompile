@@ -1,56 +1,105 @@
-Shader "Hidden/PostProcessing/CopyStdFromTexArray" {
-	Properties {
-		_MainTex ("", 2DArray) = "white" {}
-	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType"="Opaque" }
-		LOD 200
+Shader "Hidden/PostProcessing/CopyStdFromTexArray"
+{
+    //Blit from texture array slice. Similar to CopyStd but with texture array as source
+    //and sampling from texture array. Having separate shader is cleaner than multiple #if in the code.
 
-		Pass
-		{
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+    Properties
+    {
+        _MainTex ("", 2DArray) = "white" {}
+    }
 
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
-			float4 _MainTex_ST;
+    CGINCLUDE
+        #pragma target 3.5
 
-			struct Vertex_Stage_Input
-			{
-				float4 pos : POSITION;
-				float2 uv : TEXCOORD0;
-			};
+        struct Attributes
+        {
+            float3 vertex : POSITION;
+        };
 
-			struct Vertex_Stage_Output
-			{
-				float2 uv : TEXCOORD0;
-				float4 pos : SV_POSITION;
-			};
+        struct Varyings
+        {
+            float4 vertex : SV_POSITION;
+            float3 texcoord : TEXCOORD0;
+        };
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.uv = (input.uv.xy * _MainTex_ST.xy) + _MainTex_ST.zw;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
-			}
+        Texture2DArray _MainTex;
+        SamplerState sampler_MainTex;
+        float _DepthSlice;
 
-			Texture2D<float4> _MainTex;
-			SamplerState sampler_MainTex;
+        float2 TransformTriangleVertexToUV(float2 vertex)
+        {
+            float2 uv = (vertex + 1.0) * 0.5;
+            return uv;
+        }
 
-			struct Fragment_Stage_Input
-			{
-				float2 uv : TEXCOORD0;
-			};
+        Varyings Vert(Attributes v)
+        {
+            Varyings o;
+            o.vertex = float4(v.vertex.xy, 0.0, 1.0);
+            o.texcoord.xy = TransformTriangleVertexToUV(v.vertex.xy);
 
-			float4 frag(Fragment_Stage_Input input) : SV_TARGET
-			{
-				return _MainTex.Sample(sampler_MainTex, input.uv.xy);
-			}
+            #if UNITY_UV_STARTS_AT_TOP
+            o.texcoord.xy = o.texcoord.xy * float2(1.0, -1.0) + float2(0.0, 1.0);
+            #endif
+            o.texcoord.z = _DepthSlice;
 
-			ENDHLSL
-		}
-	}
+            return o;
+        }
+
+        float4 Frag(Varyings i) : SV_Target
+        {
+            float4 color = _MainTex.Sample(sampler_MainTex, i.texcoord);
+            return color;
+        }
+
+        bool IsNan(float x)
+        {
+            return (x < 0.0 || x > 0.0 || x == 0.0) ? false : true;
+        }
+
+        bool AnyIsNan(float4 x)
+        {
+            return IsNan(x.x) || IsNan(x.y) || IsNan(x.z) || IsNan(x.w);
+        }
+
+        float4 FragKillNaN(Varyings i) : SV_Target
+        {
+            float4 color = _MainTex.Sample(sampler_MainTex, i.texcoord);
+
+            if (AnyIsNan(color))
+            {
+                color = (0.0).xxxx;
+            }
+
+            return color;
+        }
+
+    ENDCG
+
+    SubShader
+    {
+        Cull Off ZWrite Off ZTest Always
+
+        // 0 - Copy
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex Vert
+                #pragma fragment Frag
+
+            ENDCG
+        }
+
+        // 0 - Copy + NaN killer
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex Vert
+                #pragma fragment FragKillNaN
+
+            ENDCG
+        }
+    }
 }

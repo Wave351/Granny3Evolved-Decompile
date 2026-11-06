@@ -1,56 +1,101 @@
-Shader "Hidden/PostProcessing/CopyStdFromDoubleWide" {
-	Properties {
-		_MainTex ("", 2D) = "white" {}
-	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType"="Opaque" }
-		LOD 200
+Shader "Hidden/PostProcessing/CopyStdFromDoubleWide"
+{
+    //Blit from single-pass double-wide texture. Similar to CopyStd but with stereo texture as source
+    //and samples from double-wide. Having separate shader is cleaner than multiple #if in the code.
 
-		Pass
-		{
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+    Properties
+    {
+        _MainTex ("", 2D) = "white" {}
+    }
 
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
-			float4 _MainTex_ST;
+    CGINCLUDE
 
-			struct Vertex_Stage_Input
-			{
-				float4 pos : POSITION;
-				float2 uv : TEXCOORD0;
-			};
+        struct Attributes
+        {
+            float4 vertex : POSITION;
+            float2 texcoord : TEXCOORD0;
+        };
 
-			struct Vertex_Stage_Output
-			{
-				float2 uv : TEXCOORD0;
-				float4 pos : SV_POSITION;
-			};
+        struct Varyings
+        {
+            float4 vertex : SV_POSITION;
+            float2 texcoord : TEXCOORD0;
+        };
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.uv = (input.uv.xy * _MainTex_ST.xy) + _MainTex_ST.zw;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
-			}
+        sampler2D _MainTex;
+        float4 _UVScaleOffset;
 
-			Texture2D<float4> _MainTex;
-			SamplerState sampler_MainTex;
+        Varyings Vert(Attributes v)
+        {
+            Varyings o;
+            o.vertex = float4(v.vertex.xy * 2.0 - 1.0, 0.0, 1.0);
+            o.texcoord = v.texcoord;
 
-			struct Fragment_Stage_Input
-			{
-				float2 uv : TEXCOORD0;
-			};
+            #if UNITY_UV_STARTS_AT_TOP
+            o.texcoord = o.texcoord * float2(1.0, -1.0) + float2(0.0, 1.0);
+            #endif
 
-			float4 frag(Fragment_Stage_Input input) : SV_TARGET
-			{
-				return _MainTex.Sample(sampler_MainTex, input.uv.xy);
-			}
+            o.texcoord = o.texcoord * _UVScaleOffset.xy + _UVScaleOffset.zw;
 
-			ENDHLSL
-		}
-	}
+            return o;
+        }
+
+        float4 Frag(Varyings i) : SV_Target
+        {
+            float4 color = tex2D(_MainTex, i.texcoord);
+            return color;
+        }
+
+        //>>> We don't want to include StdLib.hlsl in this file so let's copy/paste what we need
+        bool IsNan(float x)
+        {
+            return (x < 0.0 || x > 0.0 || x == 0.0) ? false : true;
+        }
+
+        bool AnyIsNan(float4 x)
+        {
+            return IsNan(x.x) || IsNan(x.y) || IsNan(x.z) || IsNan(x.w);
+        }
+        //<<<
+
+        float4 FragKillNaN(Varyings i) : SV_Target
+        {
+            float4 color = tex2D(_MainTex, i.texcoord);
+
+            if (AnyIsNan(color))
+            {
+                color = (0.0).xxxx;
+            }
+
+            return color;
+        }
+
+    ENDCG
+
+    SubShader
+    {
+        Cull Off ZWrite Off ZTest Always
+
+        // 0 - Copy
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex Vert
+                #pragma fragment Frag
+
+            ENDCG
+        }
+
+        // 1 - Copy + NaN killer
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex Vert
+                #pragma fragment FragKillNaN
+
+            ENDCG
+        }
+    }
 }

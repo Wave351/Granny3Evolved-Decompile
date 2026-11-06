@@ -1,43 +1,91 @@
-Shader "Hidden/PostProcessing/ScreenSpaceReflections" {
-	Properties {
-	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType" = "Opaque" }
-		LOD 200
+Shader "Hidden/PostProcessing/ScreenSpaceReflections"
+{
+    // We need to use internal Unity lighting structures and functions for this effect so we have to
+    // stick to CGPROGRAM instead of HLSLPROGRAM
 
-		Pass
-		{
-			HLSLPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
+    CGINCLUDE
 
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
+        #include "UnityCG.cginc"
+        #pragma target 5.0
 
-			struct Vertex_Stage_Input
-			{
-				float4 pos : POSITION;
-			};
+        // Ported from StdLib, we can't include it as it'll conflict with internal Unity includes
+        struct AttributesDefault
+        {
+            float3 vertex : POSITION;
+        };
 
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
+        struct VaryingsDefault
+        {
+            float4 vertex : SV_POSITION;
+            float2 texcoord : TEXCOORD0;
+            float2 texcoordStereo : TEXCOORD1;
+        };
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
-			}
+        VaryingsDefault VertDefault(AttributesDefault v)
+        {
+            VaryingsDefault o;
+            o.vertex = float4(v.vertex.xy, 0.0, 1.0);
+            o.texcoord = (v.vertex.xy + 1.0) * 0.5;
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				return float4(1.0, 1.0, 1.0, 1.0); // RGBA
-			}
+        #if UNITY_UV_STARTS_AT_TOP
+            o.texcoord = o.texcoord * float2(1.0, -1.0) + float2(0.0, 1.0);
+        #endif
 
-			ENDHLSL
-		}
-	}
+            o.texcoordStereo = TransformStereoScreenSpaceTex(o.texcoord, 1.0);
+
+            return o;
+        }
+
+        #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/ScreenSpaceReflections.hlsl"
+
+    ENDCG
+
+    SubShader
+    {
+        Cull Off ZWrite Off ZTest Always
+
+        // 0 - Test
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex VertDefault
+                #pragma fragment FragTest
+
+            ENDCG
+        }
+
+        // 1 - Resolve
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex VertDefault
+                #pragma fragment FragResolve
+
+            ENDCG
+        }
+
+        // 2 - Reproject
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex VertDefault
+                #pragma fragment FragReproject
+
+            ENDCG
+        }
+
+        // 3 - Composite
+        Pass
+        {
+            CGPROGRAM
+
+                #pragma vertex VertDefault
+                #pragma fragment FragComposite
+
+            ENDCG
+        }
+    }
 }
