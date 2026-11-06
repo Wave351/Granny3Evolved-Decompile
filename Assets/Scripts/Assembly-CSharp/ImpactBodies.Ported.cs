@@ -10,6 +10,8 @@ using UnityEngine.UI;
 // Ported from Annotated-Pseudocode/ImpactBodies.c (Granny 3 Evolved, IL2CPP x64; reused from the Granny Legacy port).
 public partial class ImpactBodies
 {
+	// Same compiled constructor as EffectImpactCrystals (shared code).
+	public ImpactBodies() { RadiusImpact = 20f; PushImpact = 15f; }
 
 	private void Start()
 	{
