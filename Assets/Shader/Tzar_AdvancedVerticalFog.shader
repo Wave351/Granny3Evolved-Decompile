@@ -29,8 +29,9 @@ Shader "Tzar/AdvancedVerticalFog" {
 		_SpeedY ("Y Speed", Range(-0.5, 0.5)) = 0
 		[Header(Debug)] [Toggle] _TestDistortion ("Show Distortion Texture", Float) = 0
 	}
-	// Restoration: AssetRipper exported this as a dummy (solid white quads). Approximation of Tzar's vertical fog:
-	// a scrolling, slightly distorted transparent texture that fades out near the camera and toward the mesh edges.
+	// Restoration: AssetRipper exported this as a dummy. Approximation of Tzar's vertical fog: each horizontal fog plane
+	// is as thick as the distance between it and the scene behind it (depth texture), so it reads as a layer of fog over
+	// the floor, thinning softly where it meets walls and furniture. The clouds texture scrolls through it.
 	SubShader {
 		Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
 		Pass {
@@ -43,13 +44,12 @@ Shader "Tzar/AdvancedVerticalFog" {
 			#pragma multi_compile_fog
 			#include "UnityCG.cginc"
 			sampler2D _MainTex; float4 _MainTex_ST;
-			sampler2D _DistortTex; float4 _DistortTex_ST;
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 			fixed4 _Color;
 			float _IntersectionThresholdMax, _Alpha, _Invert, _Translate, _SpeedX, _SpeedY;
-			float _Rotation, _RotationSpeed, _OriginX, _OriginY;
-			float _UseMainDistort, _MainDistortAmount, _Magnitude, _DistortSpeed, _Period, _Offset;
+			float _Rotation, _RotationSpeed, _OriginX, _OriginY, _Magnitude, _DistortSpeed, _Period, _Offset, _MainDistortAmount;
 			struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
-			struct v2f { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; float camDist : TEXCOORD1; UNITY_FOG_COORDS(2) };
+			struct v2f { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; float4 screen : TEXCOORD1; float eye : TEXCOORD2; UNITY_FOG_COORDS(3) };
 			v2f vert(appdata v)
 			{
 				v2f o;
@@ -58,29 +58,28 @@ Shader "Tzar/AdvancedVerticalFog" {
 				if (_Rotation > 0.5)
 				{
 					float a = _Time.y * _RotationSpeed * 6.2831853;
-					float2 c = float2(_OriginX, _OriginY) + 0.5;
-					float2 d = uv - c;
+					float2 c = float2(_OriginX, _OriginY) + 0.5, d = uv - c;
 					uv = c + float2(d.x * cos(a) - d.y * sin(a), d.x * sin(a) + d.y * cos(a));
 				}
 				if (_Translate > 0.5) uv += _Time.y * float2(_SpeedX, _SpeedY);
 				o.uv = uv;
-				o.camDist = length(UnityObjectToViewPos(v.vertex));
+				o.screen = ComputeScreenPos(o.pos);
+				o.eye = -UnityObjectToViewPos(v.vertex).z;
 				UNITY_TRANSFER_FOG(o, o.pos);
 				return o;
 			}
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float2 uv = i.uv;
-				// Gentle wave distortion driven by the main texture.
 				float wave = sin((uv.y * _Period + _Time.y * _DistortSpeed) * 6.2831853 + _Offset);
-				float n = _UseMainDistort > 0.5 ? tex2D(_MainTex, uv * 0.5).r : tex2D(_DistortTex, uv).r;
-				uv += (n - 0.5) * wave * _Magnitude * 0.004 * _MainDistortAmount;
+				uv += (tex2D(_MainTex, uv * 0.5).r - 0.5) * wave * _Magnitude * 0.004 * _MainDistortAmount;
 				fixed4 tex = tex2D(_MainTex, uv);
 				if (_Invert > 0.5) tex.rgb = 1 - tex.rgb;
-				float lum = dot(tex.rgb, float3(0.299, 0.587, 0.114));
-				fixed4 col = fixed4(_Color.rgb * tex.rgb, 1);
-				col.a = saturate(_Color.a * tex.a * lum * _IntersectionThresholdMax * 2 * saturate(1 + _Alpha));
-				col.a *= saturate((i.camDist - 0.5) / 2.5);   // no white wall when the camera is inside the fog
+				float scene = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.screen)));
+				float thickness = saturate((scene - i.eye) * _IntersectionThresholdMax);
+				float density = saturate(dot(tex.rgb, float3(0.299, 0.587, 0.114)) + _Alpha);
+				fixed4 col = fixed4(_Color.rgb * tex.rgb, saturate(_Color.a * 2 * density * thickness));
+				col.a *= saturate((i.eye - 0.3) / 1.5);
 				UNITY_APPLY_FOG(i.fogCoord, col);
 				return col;
 			}

@@ -58,6 +58,9 @@ public class BakedAmbientRestore : MonoBehaviour
 	// The editor (and some lighting changes) rebuild the ambient probe from the black flat colour; put it back.
 	private void LateUpdate()
 	{
+		// The restored ground-fog shader fades by scene depth, so the player camera must render a depth texture.
+		var cam = Camera.main;
+		if (cam && (cam.depthTextureMode & DepthTextureMode.Depth) == 0) cam.depthTextureMode |= DepthTextureMode.Depth;
 		if (active && (RenderSettings.ambientMode != AmbientMode.Custom || RenderSettings.ambientProbe[0, 0] != probe[0, 0])) Apply();
 	}
 }
