@@ -29,56 +29,62 @@ Shader "Tzar/AdvancedVerticalFog" {
 		_SpeedY ("Y Speed", Range(-0.5, 0.5)) = 0
 		[Header(Debug)] [Toggle] _TestDistortion ("Show Distortion Texture", Float) = 0
 	}
-	//DummyShaderTextExporter
-	SubShader{
-		Tags { "RenderType"="Opaque" }
-		LOD 200
-
-		Pass
-		{
-			HLSLPROGRAM
+	// Restoration: AssetRipper exported this as a dummy (solid white quads). Approximation of Tzar's vertical fog:
+	// a scrolling, slightly distorted transparent texture that fades out near the camera and toward the mesh edges.
+	SubShader {
+		Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
+		Pass {
+			Blend SrcAlpha OneMinusSrcAlpha
+			ZWrite Off
+			Cull Off
+			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-
-			float4x4 unity_ObjectToWorld;
-			float4x4 unity_MatrixVP;
-			float4 _MainTex_ST;
-
-			struct Vertex_Stage_Input
+			#pragma multi_compile_fog
+			#include "UnityCG.cginc"
+			sampler2D _MainTex; float4 _MainTex_ST;
+			sampler2D _DistortTex; float4 _DistortTex_ST;
+			fixed4 _Color;
+			float _IntersectionThresholdMax, _Alpha, _Invert, _Translate, _SpeedX, _SpeedY;
+			float _Rotation, _RotationSpeed, _OriginX, _OriginY;
+			float _UseMainDistort, _MainDistortAmount, _Magnitude, _DistortSpeed, _Period, _Offset;
+			struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
+			struct v2f { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; float camDist : TEXCOORD1; UNITY_FOG_COORDS(2) };
+			v2f vert(appdata v)
 			{
-				float4 pos : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			struct Vertex_Stage_Output
-			{
-				float2 uv : TEXCOORD0;
-				float4 pos : SV_POSITION;
-			};
-
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.uv = (input.uv.xy * _MainTex_ST.xy) + _MainTex_ST.zw;
-				output.pos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.pos));
-				return output;
+				v2f o;
+				o.pos = UnityObjectToClipPos(v.vertex);
+				float2 uv = TRANSFORM_TEX(v.uv, _MainTex);
+				if (_Rotation > 0.5)
+				{
+					float a = _Time.y * _RotationSpeed * 6.2831853;
+					float2 c = float2(_OriginX, _OriginY) + 0.5;
+					float2 d = uv - c;
+					uv = c + float2(d.x * cos(a) - d.y * sin(a), d.x * sin(a) + d.y * cos(a));
+				}
+				if (_Translate > 0.5) uv += _Time.y * float2(_SpeedX, _SpeedY);
+				o.uv = uv;
+				o.camDist = length(UnityObjectToViewPos(v.vertex));
+				UNITY_TRANSFER_FOG(o, o.pos);
+				return o;
 			}
-
-			Texture2D<float4> _MainTex;
-			SamplerState sampler_MainTex;
-			float4 _Color;
-
-			struct Fragment_Stage_Input
+			fixed4 frag(v2f i) : SV_Target
 			{
-				float2 uv : TEXCOORD0;
-			};
-
-			float4 frag(Fragment_Stage_Input input) : SV_TARGET
-			{
-				return _MainTex.Sample(sampler_MainTex, input.uv.xy) * _Color;
+				float2 uv = i.uv;
+				// Gentle wave distortion driven by the main texture.
+				float wave = sin((uv.y * _Period + _Time.y * _DistortSpeed) * 6.2831853 + _Offset);
+				float n = _UseMainDistort > 0.5 ? tex2D(_MainTex, uv * 0.5).r : tex2D(_DistortTex, uv).r;
+				uv += (n - 0.5) * wave * _Magnitude * 0.004 * _MainDistortAmount;
+				fixed4 tex = tex2D(_MainTex, uv);
+				if (_Invert > 0.5) tex.rgb = 1 - tex.rgb;
+				float lum = dot(tex.rgb, float3(0.299, 0.587, 0.114));
+				fixed4 col = fixed4(_Color.rgb * tex.rgb, 1);
+				col.a = saturate(_Color.a * tex.a * lum * _IntersectionThresholdMax * 2 * saturate(1 + _Alpha));
+				col.a *= saturate((i.camDist - 0.5) / 2.5);   // no white wall when the camera is inside the fog
+				UNITY_APPLY_FOG(i.fogCoord, col);
+				return col;
 			}
-
-			ENDHLSL
+			ENDCG
 		}
 	}
 }
