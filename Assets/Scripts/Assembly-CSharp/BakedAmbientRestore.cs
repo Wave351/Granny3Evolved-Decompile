@@ -40,12 +40,19 @@ public class BakedAmbientRestore : MonoBehaviour
 			float scale = QualitySettings.activeColorSpace == ColorSpace.Gamma && dc > 0 ? Mathf.LinearToGammaSpace(dc) / dc : 1f;
 			for (int k = 0; k < 9; k++) probe[c, k] = values[c * 9 + k] * scale;
 		}
+		Apply();
+		UnityEngine.Debug.Log("[BakedAmbientRestore] applied baked ambient probe for " + scene.name + ", DC red " + probe[0, 0].ToString("F4"));
+	}
+	// Unity only uses an assigned probe in Custom mode; in Flat mode it keeps rebuilding it from the (black) colour.
+	private void Apply()
+	{
+		RenderSettings.ambientMode = AmbientMode.Custom;
 		RenderSettings.ambientProbe = probe;
 	}
 
 	// The editor (and some lighting changes) rebuild the ambient probe from the black flat colour; put it back.
 	private void LateUpdate()
 	{
-		if (active && RenderSettings.ambientProbe[0, 0] != probe[0, 0]) RenderSettings.ambientProbe = probe;
+		if (active && (RenderSettings.ambientMode != AmbientMode.Custom || RenderSettings.ambientProbe[0, 0] != probe[0, 0])) Apply();
 	}
 }
