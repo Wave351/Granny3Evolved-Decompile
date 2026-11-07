@@ -66,9 +66,9 @@ public partial class AI_Slendrina
 	            if (!PlayerCaughtAttention) TimerIdle += Time.deltaTime;
 	            if (TimerMaxIdle <= TimerIdle) { PathingToPlayer = false; TimerIdle = 0; SendHome(); }
 	        }
-		    LookRayCast.LookAt(HeadPL.position);
-		    LookRayCast2.LookAt(HeadPL.position);
-		    LookRayCast3.LookAt(HeadPL.position);
+		    LookRayCast.LookAt(CamPivot.transform.position);
+		    LookRayCast2.LookAt(CamPivot.transform.position);
+		    LookRayCast3.LookAt(CamPivot.transform.position);
 		    if (Vector3.Distance(transform.position, PlayerTransform.position) <= TeleportAwayDistance && !PlayerCaughtAttention && PathingToPlayer) TimerIdle = 100;
 		    RaycastHit hit;
 		    bool seen = Physics.Raycast(LookRayCast.position, LookRayCast.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, LayersRay)
