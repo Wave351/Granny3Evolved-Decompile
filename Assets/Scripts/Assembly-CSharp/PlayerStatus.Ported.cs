@@ -254,6 +254,7 @@ public partial class PlayerStatus
 			InBed2 = false;
 			InBed3 = false;
 			LookAtGranny = false;
+			LookAtGrandpa = false;   // the original clears both with one two-byte write
 			HidingFromMom = false;
 			IsJumpscared = false;
 			Days.StartNew();
@@ -279,6 +280,7 @@ public partial class PlayerStatus
 			BedHide3.DisableDeath();
 			LeaveBeds();
 			LookAtGranny = false;
+			LookAtGrandpa = false;   // the original clears both with one two-byte write
 			HidingFromMom = false;
 			IsJumpscared = false;
 			Days.StartNew();
