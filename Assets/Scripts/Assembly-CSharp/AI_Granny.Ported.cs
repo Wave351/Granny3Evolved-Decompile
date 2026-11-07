@@ -39,6 +39,13 @@ public partial class AI_Granny
 				RGBat.enabled = false;
 			}
 		}
+		// The exported ootii.dll has no working LookAtMotor; the restored BoneLookFallback turns the head instead.
+		private void SetLookTarget(Transform target)
+		{
+			var look = BC.GetMotor<LookAtMotor>();
+			if (look != null) look.TargetTransform = target;
+			else BoneLookFallback.SetTarget(BC, target);
+		}
 		private const float Still = 1e-10f;
 		private bool Stationary { get { return Agent.velocity.sqrMagnitude < Still; } }
 		private void FixedUpdate()
@@ -55,7 +62,7 @@ public partial class AI_Granny
 			{
 				CheckDoors();
 				traps = GameObject.FindGameObjectsWithTag("BearTrapActivated");
-				BC.GetMotor<LookAtMotor>().TargetTransform = PlayerHead.transform;
+				SetLookTarget(PlayerHead.transform);
 				// Noises pull her over.
 				var noise = GameObject.FindGameObjectWithTag(NoiseObjectTag);
 				if (noise && !IsChasing && !IsAngry && !IsDying)

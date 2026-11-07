@@ -39,6 +39,13 @@ public partial class AI_Grandpa
 			var state = Anim[Shoot.name];
 			if (state != null) state.speed = speed;
 		}
+		// The exported ootii.dll has no working LookAtMotor; the restored BoneLookFallback turns the head instead.
+		private void SetLookTarget(Transform target)
+		{
+			var look = BC.GetMotor<LookAtMotor>();
+			if (look != null) look.TargetTransform = target;
+			else BoneLookFallback.SetTarget(BC, target);
+		}
 		private const float Still = 1e-10f;
 		private bool Stationary { get { return Agent.velocity.sqrMagnitude < Still; } }
 		private void FixedUpdate()
@@ -55,7 +62,7 @@ public partial class AI_Grandpa
 			{
 				CheckDoors();
 				traps = GameObject.FindGameObjectsWithTag("BearTrapActivated");
-				BC.GetMotor<LookAtMotor>().TargetTransform = PlayerHead.transform;
+				SetLookTarget(PlayerHead.transform);
 				// Noises pull her over.
 				var noise = GameObject.FindGameObjectWithTag(NoiseObjectTag);
 				if (noise && !IsChasing && !IsAngry && !IsDying)
@@ -504,5 +511,5 @@ public partial class AI_Grandpa
 		}
 		private void OnTriggerStay(Collider other) { if (other.gameObject.tag == "Player") PlayerClose = true; }
 		private void OnTriggerExit(Collider other) { if (other.gameObject.tag == "Player") PlayerClose = false; }
-		public void SetNewBoneControllerStare(Transform t) { BC.GetMotor<LookAtMotor>().TargetTransform = t; }
+		public void SetNewBoneControllerStare(Transform t) { SetLookTarget(t); }
 }
