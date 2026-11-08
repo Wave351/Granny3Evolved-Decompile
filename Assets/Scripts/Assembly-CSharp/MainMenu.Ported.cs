@@ -64,10 +64,47 @@ public partial class MainMenu
 	            (Difficulty, "Diff"), (PresetS, "PresetChoosin"), (FOV, "FOV"), (Outlines, "Outlines"),
 	            (Quality, "Quality"), (VersionControl, "CURVERSION") };
 	        UpdateDifficultyLimit();
+	        SetUpSlientloDifficulty();
 	        foreach (var setting in savedToggles) if (setting.control) setting.control.SetIsOnWithoutNotify(PlayerPrefs.GetInt(setting.key) == 1);
 	        foreach (var setting in savedSliders) if (setting.control) setting.control.SetValueWithoutNotify(PlayerPrefs.GetInt(setting.key));
 	        UpdateMenuSettings();
 	        FlushPreferences();
+	    }
+	    private GameObject slientloBox;
+	    private const string SlientloDescription =
+	        "* Granny and Grandpa are much faster\n" +
+	        "* They open doors faster too\n" +
+	        "* Grandpa shoots faster, Slendrina drains faster\n" +
+	        "* Lasers and extra creaking floors\n" +
+	        "* Every escape has extra locks and puzzles\n" +
+	        "* The atmosphere is pitch dark";
+	    // Slientlo Never Clear is the only difficulty, so the slider bar is hidden but its title stays, and a sixth
+	    // description box (a copy of Impossible's) explains it.
+	    private void SetUpSlientloDifficulty()
+	    {
+	        if (Difficulty)
+	        {
+	            Difficulty.interactable = false;
+	            foreach (Transform part in Difficulty.transform)
+	                if (!Diff_Text || part != Diff_Text.transform) part.gameObject.SetActive(false);
+	        }
+	        if (!Box_Diff5 || slientloBox) return;
+	        slientloBox = Instantiate(Box_Diff5, Box_Diff5.transform.parent);
+	        slientloBox.name = "SlientloHolder";
+	        foreach (var text in slientloBox.GetComponentsInChildren<TMP_Text>(true))
+	        {
+	            if (text.name == "DiffT") text.text = "Difficulty: Slientlo Never Clear";
+	            else if (text.name == "DescriptionDiff")
+	            {
+	                text.text = SlientloDescription;
+	                text.fontSize = 15f;
+	                text.enableAutoSizing = false;
+	                text.alignment = TextAlignmentOptions.Top;
+	                var rect = text.rectTransform;
+	                rect.sizeDelta = new Vector2(480f, 160f);
+	                rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, -33f); // just under the title, inside the box
+	            }
+	        }
 	    }
 	    private static void Place(GameObject obj, Transform spot)
 	    { if (obj && spot) obj.transform.SetPositionAndRotation(spot.position, spot.rotation); }
@@ -80,7 +117,7 @@ public partial class MainMenu
 	    private static int Value(Slider slider, int fallback = 0) { return slider ? Mathf.RoundToInt(slider.value) : fallback; }
 	    private static bool On(Toggle toggle) { return toggle && toggle.isOn; }
 	    private void UpdateDifficultyLimit()
-	    { if (Difficulty && PlayerPrefs.GetInt("IM_BOUGHT") == 1 && Difficulty.maxValue == 3) Difficulty.maxValue = 4; }
+	    { if (Difficulty && PlayerPrefs.GetInt("IM_BOUGHT") == 1 && Difficulty.maxValue < 5) Difficulty.maxValue = 5; }
 	    private void Update()
 	    {
 	        if (savedToggles == null || savedSliders == null) return;
@@ -96,6 +133,12 @@ public partial class MainMenu
 	    }
 	    private void UpdateMenuSettings()
 	    {
+	        // Forced: game version 1.2, Extras on and Nightmare on (shown but locked).
+	        if (VersionControl) { VersionControl.SetValueWithoutNotify(2); VersionControl.interactable = false; }
+	        if (Extras) { Extras.SetIsOnWithoutNotify(true); }
+	        if (NM) { NM.SetIsOnWithoutNotify(true); NM.interactable = false; }
+	        // Slientlo Never Clear is the only difficulty; its slider bar is hidden (SetUpSlientloDifficulty) but the title shows.
+	        if (Difficulty) { Difficulty.maxValue = 5; Difficulty.SetValueWithoutNotify(5); }
 	        if (CoinAmount) CoinAmount.text = PlayerPrefs.GetFloat("Coins").ToString();
 	        foreach (var setting in savedToggles) if (setting.control) Store(setting.key, setting.control.isOn ? 1 : 0);
 	        foreach (var setting in savedSliders) if (setting.control) Store(setting.key, Value(setting.control));
@@ -122,11 +165,12 @@ public partial class MainMenu
 	            if (!bgAudio.isPlaying) bgAudio.Play();
 	        }
 	        int difficulty = Value(Difficulty);
-	        string[] names = { "Easy", "Normal", "Hard", "Extreme", "Impossible" };
-	        if (Diff_Text && difficulty >= 0 && difficulty < names.Length) Diff_Text.text = "Difficulty - " + names[difficulty];
-	        GameObject[] boxes = { Box_Diff1, Box_Diff2, Box_Diff3, Box_Diff4, Box_Diff5 };
+	        string[] names = { "Easy", "Normal", "Hard", "Extreme", "Impossible", "Slientlo Never Clear" };
+	        if (Diff_Text && difficulty >= 0 && difficulty < names.Length)
+	            Diff_Text.text = difficulty == DifficultyLevel.Slientlo ? names[difficulty] : "Difficulty - " + names[difficulty];
+	        GameObject[] boxes = { Box_Diff1, Box_Diff2, Box_Diff3, Box_Diff4, Box_Diff5, slientloBox };
 	        for (int i = 0; i < boxes.Length; i++) SetObject(boxes[i], i == difficulty);
-	        bool forceEnemies = difficulty == 3 || difficulty == 4;
+	        bool forceEnemies = difficulty >= 3;
 	        if (Granny) { Granny.interactable = !forceEnemies; if (forceEnemies) Granny.SetIsOnWithoutNotify(true); }
 	        if (Grandpa) { Grandpa.interactable = !forceEnemies; if (forceEnemies) Grandpa.SetIsOnWithoutNotify(true); }
 	        SetObject(GrannyP, On(Granny)); SetObject(GrandpaP, On(Grandpa));
@@ -143,8 +187,7 @@ public partial class MainMenu
 	        int version = Value(VersionControl);
 	        if (Extras)
 	        {
-	            Extras.interactable = version == 2;
-	            if (version != 2) { Extras.SetIsOnWithoutNotify(false); Store("Extras", 0); }
+	            Extras.interactable = false; // forced on (see the top of this method)
 	        }
 	        if (Ver_Text) Ver_Text.text = "Game Version (1." + version + ")";
 	        SetObject(MusicG, On(Music));
@@ -185,7 +228,8 @@ public partial class MainMenu
 	        StartCoroutine(Timerloading());
 	    }
 	    private IEnumerator Timerloading() { yield return new WaitForSeconds(3.5f); SceneManager.LoadScene("Scene"); }
-	    public void OnApplicationQuit() { FlushPreferences(); PlayerPrefs.Save(); }
+	    // The Quit button calls this. The original only called Application.Quit; settings are saved first here.
+	    public void OnApplicationQuit() { FlushPreferences(); PlayerPrefs.Save(); Application.Quit(); }
 	    public void LoadGame()
 	    {
 	        if (GINPUT && (!GINPUT.gameObject.activeSelf || !GINPUT.enabled)) Application.Quit();

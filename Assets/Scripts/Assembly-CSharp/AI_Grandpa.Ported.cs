@@ -17,13 +17,13 @@ public partial class AI_Grandpa
 		public AI_Grandpa()
 		{
 			DistanceJumpscare = 1.5f; Walk_Speed = 3f; Run_Speed = 5f; Walk_Anim = 1.1f; Run_Anim = 1.2f; TimerMaxShoot = 3f;
-			timerDizzyMax = 30f; TimerMaxNoise = .1f; TimerMaxNewNav = 5f; MaxSearch = 5f; DistanceFromNav = 2f; DistanceFromPlayer = 1.5f;
+			timerDizzyMax = 15f; // half the original 30 s TimerMaxNoise = .1f; TimerMaxNewNav = 5f; MaxSearch = 5f; DistanceFromNav = 2f; DistanceFromPlayer = 1.5f;
 			coneAngle = 35f; rayCount = 7; DoorDistance = 4f; TimerMaxDoor = 2f; NoiseObjectTag = "noiseobject"; TrapPregnant = true;
 			TimerMaxTrap = 2f; TimerAfterSearchTrapMax = 6f; MaxTraps = 5f; DistanceRayPL = 6f; MaxBedCaughtTimer = 2.5f;
 		}
 		private void Start()
 		{
-			switch (PlayerPrefs.GetInt("Diff"))
+			switch (DifficultyLevel.Rules)
 			{
 				case 0: Run_Speed = 2.5f; Run_Anim = 1.25f; TimerMaxShoot = 2f; SetShootSpeed(.8f); break;
 				case 1: Run_Speed = 3.8f; Run_Anim = 1.9f; TimerMaxShoot = 1.8f; SetShootSpeed(1f); break;
@@ -31,6 +31,13 @@ public partial class AI_Grandpa
 				case 3: Run_Speed = 8.5f; Run_Anim = 4.25f; TimerMaxShoot = .8f; SetShootSpeed(1.4f); break;
 				case 4: Run_Speed = 10.5f; Run_Anim = 5f; DistanceJumpscare = 3.5f; TimerMaxShoot = .5f; SetShootSpeed(1.6f); break;
 			}
+			// Slientlo Never Clear: Impossible, but running is 65% faster and walking 21% faster.
+			float scale = DifficultyLevel.SpeedScale;
+			Run_Speed *= scale; Run_Anim *= scale; float walkScale = DifficultyLevel.WalkSpeedScale; Walk_Speed *= walkScale; Walk_Anim *= walkScale;
+			// At these speeds the agent needs to brake and turn harder or it slides past corners.
+			if (DifficultyLevel.IsSlientlo && Agent) { Agent.acceleration = Mathf.Max(Agent.acceleration, Run_Speed * 8f); Agent.angularSpeed = Mathf.Max(Agent.angularSpeed, 720f); }
+			// He also shoots 30% faster: shorter wait between shots and a faster shotgun animation.
+			if (DifficultyLevel.IsSlientlo) { TimerMaxShoot /= DifficultyLevel.SlientloShootScale; SetShootSpeed(1.6f * DifficultyLevel.SlientloShootScale); }
 		}
 		// Harder difficulties pump the shotgun faster.
 		private void SetShootSpeed(float speed)
@@ -50,6 +57,7 @@ public partial class AI_Grandpa
 		private bool Stationary { get { return Agent.velocity.sqrMagnitude < Still; } }
 		private void FixedUpdate()
 		{
+			if (Training.Hold(Agent, Anim)) return;
 			// Up close with a clear line to the player: chase.
 			RayCheckP.LookAt(Player.position);
 			Vector3 rayDir = RayCheckP.TransformDirection(Vector3.forward);
@@ -109,7 +117,7 @@ public partial class AI_Grandpa
 				UpdateState();
 				UpdateAnimation();
 				// Close enough: he grabs the player.
-				if (Vector3.Distance(transform.position, Player.position) <= DistanceJumpscare && IsChasing && !Ally.CaughtPlayer && !IsShooting
+				if (Vector3.Distance(transform.position, Player.position) <= DistanceJumpscare && !Training.Spare() && IsChasing && !Ally.CaughtPlayer && !IsShooting
 				    && !WJ.IsJumping && !falling.isLanding && !falling.isFalling && !PlayerStatus.HidingUnderThings && EnemyVision.Seeing
 				    && !PlayerStatus.InBed1 && !PlayerStatus.InBed2 && !PlayerStatus.InBed3)
 				{
@@ -200,7 +208,7 @@ public partial class AI_Grandpa
 			if (door && door.Closed && !door.Locked)
 			{
 				IsOpeningDoor = true;
-				TimerMaxDoor = 2f;
+				TimerMaxDoor = 2f / DifficultyLevel.DoorSpeedScale;
 				LockedDoorAttempts = 0;
 				TimerDoorOpening += Time.deltaTime;
 				if (TimerDoorOpening >= TimerMaxDoor) { door.OpeningClosingAttempts(); TimerDoorOpening = 0; }
@@ -208,7 +216,7 @@ public partial class AI_Grandpa
 			}
 			if (door && door.Locked && !IsSearching && name != "SubwayCrowbarRoomDoor" && name != "ShedDoorMovable" && name != "PrisonerDoor_2")
 			{
-				TimerDoorOpening += Time.deltaTime * 1.5f;
+				TimerDoorOpening += Time.deltaTime * 1.5f * DifficultyLevel.DoorSpeedScale;
 				IsOpeningDoor = true;
 				Agent.isStopped = true;
 				var swing = best.collider.GetComponent<Animation>();
@@ -232,7 +240,7 @@ public partial class AI_Grandpa
 			if (closet && animated && animated.Closed && CanOpenClosets)
 			{
 				IsOpeningDoor = true;
-				TimerMaxDoor = 1f;
+				TimerMaxDoor = 1f / DifficultyLevel.DoorSpeedScale;
 				LockedDoorAttempts = 0;
 				TimerDoorOpening += Time.deltaTime;
 				Agent.isStopped = true;
@@ -268,7 +276,7 @@ public partial class AI_Grandpa
 				{
 					// Hiding under the bed doesn't work if she saw it.
 					TimerBedCaught += Time.deltaTime;
-					if (TimerBedCaught >= MaxBedCaughtTimer && !Ally.CaughtPlayer)
+					if (TimerBedCaught >= MaxBedCaughtTimer && !Training.Spare() && !Ally.CaughtPlayer)
 					{
 						IsChasing = false;
 						TimerBedCaught = 0;
@@ -395,10 +403,10 @@ public partial class AI_Grandpa
 			TH.GrandpaEyesNormal = new Color(1f, 0f, 1f, 1f);
 			TH.GrandpaEyesSetDark = new Color(1f, 0f, 1f, 1f);
 			TH.GrandpaEyeM.material.color = TH.GrandpaEyesNormal;
-			timerDizzyMax = 28f;
+			timerDizzyMax = 14f; // half the original 28 s
 			blastOn = true;
-			Walk_Speed = 3.8f;
-			Walk_Anim = 1.9f;
+			Walk_Speed = 3.8f * DifficultyLevel.WalkSpeedScale;
+			Walk_Anim = 1.9f * DifficultyLevel.WalkSpeedScale;
 		}
 		public void HitWithStone(bool effectOn)
 		{

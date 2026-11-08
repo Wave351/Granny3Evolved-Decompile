@@ -17,6 +17,7 @@ public partial class CrowChimney
 		private void Start() { oldRotation = body.rotation; }
 		private void Update()
 		{
+			if (Training.Hold(null, Flying)) return;
 			// A burning log in the fireplace makes the crow fly away for a while.
 			if (burningLog.activeSelf && !flewff)
 			{

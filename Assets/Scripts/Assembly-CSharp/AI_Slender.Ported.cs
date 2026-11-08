@@ -21,7 +21,7 @@ public partial class AI_Slender
 	    }
 	    private void Start()
 	    {
-	        switch (PlayerPrefs.GetInt("Diff"))
+	        switch (DifficultyLevel.Rules)
 	        {
 	            case 0: DamageSpeed = 25; break;
 	            case 1: DamageSpeed = 45; break;
@@ -39,6 +39,8 @@ public partial class AI_Slender
 	    }
 	    private void Update()
 	    {
+	    	if (Training.On) Health = 100f;
+	    	if (Training.Hold(null, null)) return;
 	        bool hidden = PS.HidingUnderThings || PS.HidingInClosets || PS.InBed1 || PS.InBed2 || PS.InBed3;
 	        if (!PathingToPlayer && canAttack && BGM.InFacility && !PS.IsJumpscared && !Fall.isFalling && !Fall.isLanding
 	            && !PS.Killed && PlayerTransform.gameObject.activeSelf && !hidden)

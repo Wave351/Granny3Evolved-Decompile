@@ -24,13 +24,13 @@ public partial class AI_Slendrina
 		private void Start()
 		{
 		    if (!Travel) Agent.enabled = false;
-		    switch (PlayerPrefs.GetInt("Diff"))
+		    switch (DifficultyLevel.Rules)
 		    {
 		        case 0: DamageSpeed = 55; break;
 		        case 1: DamageSpeed = 75; break;
 		        case 2: DamageSpeed = 85; break;
 		        case 3: DamageSpeed = 105; break;
-		        case 4: DamageSpeed = 125; break;
+		        case 4: DamageSpeed = DifficultyLevel.IsSlientlo ? 190 : 125; break; // Slientlo kills faster
 
 		    }
 		}
@@ -45,6 +45,8 @@ public partial class AI_Slendrina
 		}
 	    private void Update()
 	    {
+	    	if (Training.On) Health = 100f; // her look drains this
+	    	if (Training.Hold(Agent, null)) return;
 	        bool hidden = PS.HidingUnderThings || PS.HidingInClosets || PS.InBed1 || PS.InBed2 || PS.InBed3;
 	        bool blocked = BGM.InFacility || Days.WakingUp || PS.IsJumpscared || Fall.isFalling || Fall.isLanding
 	            || prisonerDoor.Locked || PS.Killed || !PlayerTransform.gameObject.activeSelf || Travel || hidden;

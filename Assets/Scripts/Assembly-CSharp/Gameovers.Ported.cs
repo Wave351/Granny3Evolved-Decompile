@@ -60,6 +60,10 @@ public partial class Gameovers
 			int which = PlayerPrefs.GetInt("GameOverWhich");
 			GrannyStuff.SetActive(true);
 			GrandpaStuff.SetActive(true);
+			// If either was down when the game ended, their comeback timer would later move them to a spawn spot in the
+			// house, away from the end scene. Clear that and stop the timer first.
+			var ec = FindAnyObjectByType<EnemyController>();
+			if (ec) { ec.GrannyKilled = false; ec.GrandpaKilled = false; ec.enabled = false; }
 			GameObject scene; Transform grannyEnd, grandpaEnd; GameObject music; string grandpaAnim;
 			switch (which)
 			{

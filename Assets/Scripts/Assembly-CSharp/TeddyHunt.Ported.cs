@@ -16,7 +16,7 @@ public partial class TeddyHunt
 		{
 			audioSource.loop = true;
 			audioSource.volume = 0;
-			if (PlayerPrefs.GetInt("Diff") == 4) { GrannyEyesNormal = GrannyEyesSetDark; GrandpaEyesNormal = GrandpaEyesSetDark; }
+			if (DifficultyLevel.Rules == 4) { GrannyEyesNormal = GrannyEyesSetDark; GrandpaEyesNormal = GrandpaEyesSetDark; }
 			GrannyEyeM.material.color = GrannyEyesNormal;
 			GrandpaEyeM.material.color = GrandpaEyesNormal;
 		}

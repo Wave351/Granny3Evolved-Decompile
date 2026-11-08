@@ -16,6 +16,7 @@ public partial class AI_Alligator
 		public AI_Alligator() { timerDeathPlayer = 10f; detectDistanceAttack = 2.5f; }
 		private void Update()
 		{
+			if (Training.Hold(agent, animAlli)) return;
 			if (onHunt && !PS.Killed)
 			{
 				if (!killingPlayer && !hurt)
@@ -83,7 +84,7 @@ public partial class AI_Alligator
 		{
 			yield return new WaitForSeconds(.45f);
 			onHunt = false;
-			PS.NormalDeath(false);
+			if (!Training.Spare()) PS.NormalDeath(false);
 			PS.DamageSpider();
 			killingPlayer = false;
 			PS.lookAtAlligator = false;

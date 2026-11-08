@@ -15,7 +15,7 @@ public partial class EnemyController
 		private void Start()
 		{
 			// Granny is always in the house on difficulties 3 and 4, even when switched off.
-			int diff = PlayerPrefs.GetInt("Diff");
+			int diff = DifficultyLevel.Rules;
 			if (PlayerPrefs.GetInt("Granny") == 0 && diff != 3 && diff != 4) GrannyStuff.SetActive(false);
 			if (PlayerPrefs.GetInt("Grandpa") == 0) GrandpaStuff.SetActive(false);
 			Grandpa.SetActive(false);
@@ -63,7 +63,7 @@ public partial class EnemyController
 		// type: 0 normal, 1 lava, 2 frozen, 3 crystal (the special bodies only come from the slingshot).
 		public void GrannyDeathS(int type, bool isSling)
 		{
-			int diff = PlayerPrefs.GetInt("Diff");
+			int diff = DifficultyLevel.Rules;
 			Instantiate(N1, RagdollPSGranny.transform.position, RagdollPSGranny.transform.rotation);
 			GrannyKilled = true;
 			GameObject body = Instantiate(RagdollBody(type, isSling, RagdollGranny, RagdollGrannyFrozen, RagdollGrannyCrystal),
@@ -100,7 +100,7 @@ public partial class EnemyController
 		public void GrandpaDeathSBed(int type, bool isSling) { DefeatGrandpa(type, isSling, true); }
 		private void DefeatGrandpa(int type, bool isSling, bool inBed)
 		{
-			int diff = PlayerPrefs.GetInt("Diff");
+			int diff = DifficultyLevel.Rules;
 			Instantiate(N2, RagdollPSGrandpa.transform.position, RagdollPSGrandpa.transform.rotation);
 			GrandpaKilled = true;
 			Transform spot = inBed ? RagdollPSGrandpaBed : RagdollPSGrandpa;
@@ -138,6 +138,7 @@ public partial class EnemyController
 		}
 		private static float Recovery(int diff, float current)
 		{
+			return 7.5f; // Slientlo only now: they're back after 7.5 seconds
 			switch (diff)
 			{
 				case 0: return 150f;
@@ -156,7 +157,7 @@ public partial class EnemyController
 				case 1: return "1 minute and 30 seconds";
 				case 2: return "1 minute ";
 				case 3: return "30 seconds ";
-				default: return "15 seconds ";
+				default: return "7.5 seconds ";
 			}
 		}
 		// How long the body lies there.

@@ -21,6 +21,7 @@ public partial class SpectralCrow
 		}
 		private void Update()
 		{
+			if (Training.Hold(agent, birdAnim)) return;
 			if (Vector3.Distance(transform.position, agent.destination) < redecideRouteDistance) RandomWaypoint();
 		}
 		// Flying into the player hurts them and knocks the held item out; the crow then speeds off for 5 seconds.

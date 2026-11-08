@@ -17,6 +17,7 @@ public partial class TicketControlBot
 	    private void Start() { transform.position = idlePoint.position; agent.enabled = true; }
 	    private void Update()
 	    {
+	    	if (Training.Hold(agent, headUnitAnim)) return;
 	        if (dead) { agent.enabled = false; alarmSFX.SetActive(false); patrolSFX.SetActive(false); return; }
 	        sight1.LookAt(playerHead.position); sight2.LookAt(playerHead.position);
 	        RaycastHit hit;

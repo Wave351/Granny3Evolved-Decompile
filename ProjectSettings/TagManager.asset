@@ -42,7 +42,7 @@ TagManager:
   - GrandpaArm
   - StairColliders
   - CollisionIgnoreItemPlayer
-  - 
+  - PlayerOnly
   - 
   - 
   - 

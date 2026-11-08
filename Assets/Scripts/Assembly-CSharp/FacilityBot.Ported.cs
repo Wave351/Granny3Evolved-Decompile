@@ -20,6 +20,7 @@ public partial class FacilityBot
 		}
 		private void Update()
 		{
+			if (Training.Hold(agent, headUnitAnim)) return;
 			if (dead)
 			{
 				agent.enabled = false;

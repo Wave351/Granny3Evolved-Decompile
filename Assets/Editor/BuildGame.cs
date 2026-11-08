@@ -34,6 +34,9 @@ public static class BuildGame
 	{
 		PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
 		PlayerSettings.resizableWindow = true;
+		PlayerSettings.allowFullscreenSwitch = false;   // WindowAspectLock handles Alt+Enter / F11 itself
+		PlayerSettings.visibleInBackground = true;      // borderless fullscreen stays on screen when tabbing out
+		FixDynamicFonts.Run();                          // dynamic TMP fonts lost their atlas in the export
 		PlayerSettings.SplashScreen.showUnityLogo = false;
 		var icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Texture2D/AppIcon.png");   // taken from the original exe
 		if (icon)

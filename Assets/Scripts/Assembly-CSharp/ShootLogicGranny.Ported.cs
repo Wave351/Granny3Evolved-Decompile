@@ -16,7 +16,7 @@ public partial class ShootLogicGranny
 		{
 			if (PlayerPrefs.GetInt("GrannyWP") == 0) GetComponent<ShootLogicGranny>().enabled = false;
 			float[] speeds = { .9f, 1.1f, 1.3f, 1.8f, 2.1f };
-			int diff = PlayerPrefs.GetInt("Diff");
+			int diff = DifficultyLevel.Rules;
 			if (diff >= 0 && diff <= 4) Anim["Granny_Shoot"].speed = speeds[diff];
 		}
 		private void Update()

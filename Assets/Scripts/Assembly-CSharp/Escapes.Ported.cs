@@ -301,7 +301,7 @@ public partial class Escapes
 		public void EscapeCoinsEarn()
 		{
 			float coins = PlayerPrefs.GetFloat("Coins", 0);
-			int diff = PlayerPrefs.GetInt("Diff");
+			int diff = DifficultyLevel.Rules;
 			bool granny = PlayerPrefs.GetInt("Granny") == 1, grandpa = PlayerPrefs.GetInt("Grandpa") == 1;
 			float reward, slendrinaBonus;
 			switch (diff)

@@ -14,6 +14,14 @@ public partial class Texture_Changing
 		// Start is empty in Evolved (Legacy also set the texture there).
 		private void Update()
 		{
-			Material.mainTexture = PlayerPrefs.GetInt("Textures") != 1 ? Default : DefaultNM;
+			bool nightmare = PlayerPrefs.GetInt("Textures") == 1;
+			Texture tex = nightmare ? DefaultNM : Default;
+			// Slientlo Never Clear dresses Granny and Grandpa in the Slientlo picture.
+			if (SlientloSkins.Active)
+			{
+				Texture slientlo = SlientloSkins.For(Default, nightmare);
+				if (slientlo) tex = slientlo;
+			}
+			Material.mainTexture = tex;
 		}
 }

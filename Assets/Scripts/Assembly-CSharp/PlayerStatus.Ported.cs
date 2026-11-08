@@ -125,6 +125,7 @@ public partial class PlayerStatus
 		}
 		public void GrannyCaughtYou()
 		{
+			if (Training.Spare()) return; // training: enemies can't kill
 			if (Killed) return;
 			EC.GrannyKilled = false;
 			EC.GrandpaBed.SetActive(false);
@@ -135,6 +136,7 @@ public partial class PlayerStatus
 		}
 		public void GrannyCaughtYouBed()
 		{
+			if (Training.Spare()) return; // training: enemies can't kill
 			if (Killed) return;
 			StartCoroutine(DeathCountBed(1.6f));
 			EC.GrandpaBed.SetActive(false);
@@ -146,6 +148,7 @@ public partial class PlayerStatus
 		}
 		public void GrandpaCaughtYou()
 		{
+			if (Training.Spare()) return; // training: enemies can't kill
 			if (Killed) return;
 			PlayerGettingStopped();
 			EC.GrandpaBed.SetActive(false);
@@ -156,6 +159,7 @@ public partial class PlayerStatus
 		}
 		public void GrandpaCaughtYouBed()
 		{
+			if (Training.Spare()) return; // training: enemies can't kill
 			if (Killed) return;
 			StartCoroutine(DeathCountBed(2.1f));
 			EC.GrandpaBed.SetActive(false);
@@ -168,6 +172,7 @@ public partial class PlayerStatus
 		// Knocked out: the ragdoll falls at the second spawn point.
 		public void KnockDeath()
 		{
+			if (Training.Spare()) return; // training: enemies can't kill
 			if (Killed) return;
 			E1.SetActive(false);
 			E2.SetActive(false);

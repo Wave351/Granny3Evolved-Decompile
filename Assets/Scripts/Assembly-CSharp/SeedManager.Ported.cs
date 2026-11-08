@@ -14,7 +14,32 @@ public partial class SeedManager
 	public SeedManager() { Seed = 12345; RandomizeSeed = true; activatePlacedItems = true; fillAllFreeSpawns = true; EscapeItemPuzzleChance = 0.7f; }
 	private void Awake()
 	{
+	    LeaveOutChainCutter();
 	    BuildLookup();
+	}
+	// Added: the chain cutter (Slientlo Never Clear's balloon chains) is only placed in runs that have the chains.
+	// Elsewhere it's taken out of the item list, the required escape items and its own spawn area, so seeds play as before.
+	private void LeaveOutChainCutter()
+	{
+	    if (!SubValveItem.InThisRun)
+	    {
+	        if (allItems != null) allItems.RemoveAll(i => i && i.GetComponent<SubValveItem>());
+	        if (requiredEscapeItemNames != null) requiredEscapeItemNames.RemoveAll(n => n == SubValveItem.ItemName);
+	        if (spawnAreas != null)
+	            spawnAreas = spawnAreas.Where(a => a == null || a.allowedItemNames == null || !a.allowedItemNames.Contains(SubValveItem.ItemName)).ToArray();
+	    }
+	    if (!BlueFuse.InThisRun)
+	    {
+	        if (allItems != null) allItems.RemoveAll(i => i && i.GetComponent<BlueFuseItem>());
+	        if (requiredEscapeItemNames != null) requiredEscapeItemNames.RemoveAll(n => n == BlueFuse.ItemName);
+	        if (spawnAreas != null)
+	            spawnAreas = spawnAreas.Where(a => a == null || a.allowedItemNames == null || !a.allowedItemNames.Contains(BlueFuse.ItemName)).ToArray();
+	    }
+	    if (BalloonChains.InThisRun) return;
+	    if (allItems != null) allItems.RemoveAll(i => i && i.GetComponent<ChainCutterItem>());
+	    if (requiredEscapeItemNames != null) requiredEscapeItemNames.RemoveAll(n => n == ChainCutterItem.ItemName);
+	    if (spawnAreas != null)
+	        spawnAreas = spawnAreas.Where(a => a == null || a.allowedItemNames == null || !a.allowedItemNames.Contains(ChainCutterItem.ItemName)).ToArray();
 	}
 
 	private void Start()

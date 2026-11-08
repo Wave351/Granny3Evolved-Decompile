@@ -21,7 +21,7 @@ public partial class OutlineCheck
 		{
 			int choice = PlayerPrefs.GetInt("Outlines");
 			if (RenderSettings.fog) return;
-			if (PlayerPrefs.GetInt("Diff") == 4 || PlayerPrefs.GetInt("Dark") == 1) return;
+			if (DifficultyLevel.Rules == 4 || PlayerPrefs.GetInt("Dark") == 1) return;
 			if (PlayerPrefs.GetInt("Outlines") == 0 || PlayerPrefs.GetInt("FlashLightIsOn") == 1) return;
 			var outline = gameObject.AddComponent<Outline>();
 			outline.OutlineMode = Outline.Mode.OutlineVisible;

@@ -16,7 +16,7 @@ public partial class Eyes_Granny
 		internal static void DifficultyVision(PlayerStatus status, ref float viewRange, ref float maxConvinced)
 		{
 			bool under = status.HidingUnderThings;
-			switch (PlayerPrefs.GetInt("Diff"))
+			switch (DifficultyLevel.Rules)
 			{
 				case 0: viewRange = 500f; maxConvinced = under ? 3f : 6f; break;
 				case 1: viewRange = 900f; maxConvinced = under ? 4f : 8f; break;

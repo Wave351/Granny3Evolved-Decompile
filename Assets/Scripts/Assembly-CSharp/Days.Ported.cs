@@ -26,7 +26,7 @@ public partial class Days
 	        ActiveAll(DeactivatedOnStart, false);
 	        if (ShadowsOnObjs != null) foreach (var renderer in ShadowsOnObjs)
 	            if (renderer) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-	        int difficulty = PlayerPrefs.GetInt("Diff");
+	        int difficulty = DifficultyLevel.Rules;
 	        Active(ImpossibleFeature, false);
 	        switch (difficulty)
 	        {
@@ -119,7 +119,7 @@ public partial class Days
 	        {
 	            var fps = Player.GetComponent<MobileFPS>(); if (fps) fps.SpeedFade = 1.5f;
 	        }
-	        if (CurrentDay == (ExtraDay ? 6f : 5f))
+	        if (CurrentDay == (ExtraDay ? 3f : 2f)) // only 2 days
 	        {
 	            if (GOvers) GOvers.GameOverCall();
 	            if (!ExtraDay) Active(Player, false);
@@ -138,8 +138,9 @@ public partial class Days
 	        if (day > 1) ResetDay(day);
 	        yield return new WaitForSeconds(3f);
 	        if (DayTextPopup) DayTextPopup.Play();
-	        Image dayImage = DayImages()[day - 1];
-	        if (dayImage && (day != 5 || !ExtraDay)) dayImage.gameObject.SetActive(true);
+	        // Only 2 days (3 with the extra day): the last one shows the "Last day" banner.
+	        Image dayImage = day == (ExtraDay ? 3 : 2) ? Text_Day5Final : DayImages()[day - 1];
+	        if (dayImage) dayImage.gameObject.SetActive(true);
 	        BeganDay = true;
 	        yield return new WaitForSeconds(2f);
 	        if (day == 1) Active(NMStuff2, false);
@@ -200,7 +201,7 @@ public partial class Days
 	    private void SpawnEnemies(int day)
 	    {
 	        if (!EC) return;
-	        int difficulty = PlayerPrefs.GetInt("Diff");
+	        int difficulty = DifficultyLevel.Rules;
 	        if (day == 1 && (difficulty == 3 || difficulty == 4))
 	        { PlayerPrefs.SetInt("Granny", 1); PlayerPrefs.SetInt("Grandpa", 1); EC.SpawnGrandpa(); EC.SpawnGranny(); }
 	        else if (PlayerPrefs.GetInt("Granny") == 1)

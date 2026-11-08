@@ -267,12 +267,25 @@ public partial class PickRay
 				Ring.SetActive(false);
 				return;
 			}
+			// Added (Slientlo Never Clear): the balloon's chains, cut with the chain cutter.
+			if (name == "BalloonChain" && BalloonChains.Blocking && BalloonChains.Instance.IsUncutChain(target))
+			{
+				Highlight("Chain");
+				if (!Clicked()) return;
+				TurnOffItemTexts();
+				var cutter = Inventory.GetItemDefByName(ChainCutterItem.ItemName);
+				if (cutter != null && cutter.handObject && cutter.handObject.activeSelf) BalloonChains.Instance.Cut(target);
+				else Say("I need a chain cutter");
+				return;
+			}
 			if (name == "HotAirBalloonPlaced")
 			{
 				if (BL.floating) return;
 				Highlight("Hot air balloon");
 				if (!Clicked()) return;
 				TurnOffItemTexts();
+				if (BalloonChains.Blocking) { Say("The balloon is chained down"); return; }
+				if (!EscapeLevers.Ready) { Say("Both levers have to be switched on first"); return; }
 				BL.EnterHotAirBalloon();
 				return;
 			}

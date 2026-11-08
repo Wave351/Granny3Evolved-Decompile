@@ -46,9 +46,9 @@ public partial class Paused
 				else if (IsPaused && !KeyBindMenu.activeSelf && !EscMenu.activeSelf && !ResMenu.activeSelf && MenuData.activeSelf) MenuData.SetActive(false);
 			}
 			if (!MenuData.activeSelf) return;
-			string[] difficulties = { "Difficulty : Easy", "Difficulty : Normal", "Difficulty : Hard", "Difficulty : Extreme", "Difficulty : Impossible" };
+			string[] difficulties = { "Difficulty : Easy", "Difficulty : Normal", "Difficulty : Hard", "Difficulty : Extreme", "Difficulty : Impossible", "Difficulty : Slientlo Never Clear" };
 			int diff = PlayerPrefs.GetInt("Diff");
-			if (diff >= 0 && diff <= 4) Data_Diff.text = difficulties[diff];
+			if (diff >= 0 && diff < difficulties.Length) Data_Diff.text = difficulties[diff];
 			Data_Granny.text = PlayerPrefs.GetInt("Granny") == 1 ? (PlayerPrefs.GetInt("GrannyWP") == 1 ? "Granny : On (Slingshot)" : "Granny : On (Bat)") : "Granny : Off";
 			Data_Grandpa.text = PlayerPrefs.GetInt("Grandpa") == 1 ? "Grandpa : On" : "Grandpa : Off";
 			Data_S.text = PlayerPrefs.GetInt("SlendrinaEnemy") != 0 ? "Slendrina : On" : "Slendrina : Off";

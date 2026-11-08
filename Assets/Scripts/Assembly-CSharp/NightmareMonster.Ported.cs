@@ -17,6 +17,7 @@ public partial class NightmareMonster
 		private void Start() { StartCoroutine(WanderRoutine()); }
 		private void Update()
 		{
+			if (Training.Hold(agent, anim)) return;
 			if (blasting) return;
 			// Seeing the player (through an open prisoner door) makes it stare them down; staying too long gets blasted.
 			visionPoint.LookAt(playerHead);
